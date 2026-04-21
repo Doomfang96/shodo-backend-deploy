@@ -38,34 +38,36 @@ import progressSummaryController from "./controllers/progressController.js";
 
 const PgSession = connectPgSimple(session); //session store using postgres
 
-//config express app
+//session middleware
 const app = express();
 
-//session middleware
+app.set("trust proxy", true);
+
 app.use(
   cors({
     origin: process.env.FRONTEND_URL,
     credentials: true,
   }),
-); //enable cors
+);
 
 app.use(express.json());
 
 app.use(
   session({
     store: new PgSession({
-      pool: db, //use existing db connection pool
-      tableName: "session", //table to store sessions
+      pool: db,
+      tableName: "session",
       createTableIfMissing: true,
     }),
     secret: process.env.SESSION_SECRET,
-    resave: false, //only save if something changes
-    saveUninitialized: false, //don't save empty sessions
+    resave: false,
+    saveUninitialized: false,
+    proxy: true,
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", //fine for localhost,do not leave hardcoded should be env dependent
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", //lax for dev, none for production with secure cookies
-      maxAge: 1000 * 60 * 60 * 24, //1 day
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 1000 * 60 * 60 * 24,
     },
   }),
 );
